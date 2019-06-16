@@ -150,6 +150,7 @@ static void build_request(h2o_req_t *req, h2o_iovec_t *method, h2o_url_t *url, h
     int preserve_x_forwarded_proto = req->conn->ctx->globalconf->proxy.preserve_x_forwarded_proto;
     int emit_x_forwarded_headers = req->conn->ctx->globalconf->proxy.emit_x_forwarded_headers;
     int emit_via_header = req->conn->ctx->globalconf->proxy.emit_via_header;
+    int handoff = req->conn->ctx->globalconf->proxy.handoff;
 
     /* for x-f-f */
     if ((sslen = req->conn->callbacks->get_peername(req->conn, (void *)&ss)) != 0)
@@ -287,6 +288,32 @@ static void build_request(h2o_req_t *req, h2o_iovec_t *method, h2o_url_t *url, h
 
         via_buf = build_request_merge_headers(&req->pool, via_buf, added, ',');
         h2o_add_header(&req->pool, headers, H2O_TOKEN_VIA, NULL, via_buf.base, via_buf.len);
+    }
+    if (handoff) {
+        if (req->version >= 0x200) {
+            // Not supported. Do nothing.
+        } else {
+            h2o_iovec_t tcp_info;
+            tcp_info.base = h2o_mem_alloc_pool(&req->pool, char, sizeof("deadbeef"));
+            memcpy(tcp_info.base, "deadbeef", sizeof("deadbeef"));
+            tcp_info.len = sizeof("deadbeef");
+            h2o_add_header_by_str(&req->pool, headers, "x-handoff-info-tcp",
+                    sizeof("x-handoff-info-tcp"), 0, NULL, tcp_info.base, tcp_info.len);
+
+#ifndef MIN
+#define MIN(a, b) (((a) > (b)) ? (b) : (a))
+#endif
+            if (req->input.scheme->name.len == 5 && memcmp(req->input.scheme->name.base, "https",
+                        MIN(req->input.scheme->name.len, sizeof("https") - 1)) == 0) {
+                h2o_iovec_t tls_info;
+                tls_info.base = h2o_mem_alloc_pool(&req->pool, char, sizeof("deadbeef"));
+                memcpy(tls_info.base, "deadbeef", sizeof("deadbeef"));
+                tls_info.len = sizeof("deadbeef");
+                h2o_add_header_by_str(&req->pool, headers, "x-handoff-info-tls",
+                        sizeof("x-handoff-info-tls"), 0, NULL, tls_info.base, tls_info.len);
+            }
+#undef MIN
+        }
     }
 }
 

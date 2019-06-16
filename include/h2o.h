@@ -442,6 +442,10 @@ struct st_h2o_globalconf_t {
          */
         unsigned emit_missing_date_header : 1;
         /**
+         * a boolean flag if set to true, use TCP/TLS handoff instead of ordinal proxying
+         */
+        unsigned handoff : 1;
+        /**
          * maximum size to buffer for the response
          */
         size_t max_buffer_size;
