@@ -326,6 +326,7 @@ SET(LIB_SOURCE_FILES
     lib/core/config.c
     lib/core/configurator.c
     lib/core/context.c
+    lib/core/handoff.c
     lib/core/headers.c
     lib/core/logconf.c
     lib/core/proxy.c
