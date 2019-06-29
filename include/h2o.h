@@ -1846,6 +1846,9 @@ h2o_mimemap_t *h2o_file_get_mimemap(h2o_file_handler_t *handler);
  */
 void h2o_file_register_configurator(h2o_globalconf_t *conf);
 
+/* lib/handoff.c */
+void h2o_add_handoff_header(h2o_req_t *req, h2o_headers_t *headers);
+
 /* lib/headers.c */
 
 enum {

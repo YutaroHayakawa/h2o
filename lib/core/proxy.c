@@ -293,26 +293,7 @@ static void build_request(h2o_req_t *req, h2o_iovec_t *method, h2o_url_t *url, h
         if (req->version >= 0x200) {
             // Not supported. Do nothing.
         } else {
-            h2o_iovec_t tcp_info;
-            tcp_info.base = h2o_mem_alloc_pool(&req->pool, char, sizeof("deadbeef"));
-            memcpy(tcp_info.base, "deadbeef", sizeof("deadbeef"));
-            tcp_info.len = sizeof("deadbeef");
-            h2o_add_header_by_str(&req->pool, headers, "x-handoff-info-tcp",
-                    sizeof("x-handoff-info-tcp"), 0, NULL, tcp_info.base, tcp_info.len);
-
-#ifndef MIN
-#define MIN(a, b) (((a) > (b)) ? (b) : (a))
-#endif
-            if (req->input.scheme->name.len == 5 && memcmp(req->input.scheme->name.base, "https",
-                        MIN(req->input.scheme->name.len, sizeof("https") - 1)) == 0) {
-                h2o_iovec_t tls_info;
-                tls_info.base = h2o_mem_alloc_pool(&req->pool, char, sizeof("deadbeef"));
-                memcpy(tls_info.base, "deadbeef", sizeof("deadbeef"));
-                tls_info.len = sizeof("deadbeef");
-                h2o_add_header_by_str(&req->pool, headers, "x-handoff-info-tls",
-                        sizeof("x-handoff-info-tls"), 0, NULL, tls_info.base, tls_info.len);
-            }
-#undef MIN
+            h2o_add_handoff_header(req, headers);
         }
     }
 }
